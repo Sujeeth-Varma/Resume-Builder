@@ -1,72 +1,170 @@
-# Full System Implementation & Verification Walkthrough
+# System Architecture, Flow Diagrams & Operational Guide
 
-This document provides a comprehensive summary of the end-to-end implementation, database migrations, backend execution with `uv`, and frontend application development for the **AI Resume Assistant & Career Engine**.
-
----
-
-## Summary of Changes & Milestones
-
-### 1. Database Schema & Models Fix (`/backend/app/models`)
-- **Root Cause Addressed**: Resolved an `asyncpg` timezone mismatch error (`can't subtract offset-naive and offset-aware datetimes`) when saving `datetime.now(timezone.utc)` timestamps to PostgreSQL columns.
-- **Files Modified**:
-  - [`user.py`](file:///home/sujeeth/Desktop/Echo-Brains/Resume_Builder/backend/app/models/user.py)
-  - [`profile.py`](file:///home/sujeeth/Desktop/Echo-Brains/Resume_Builder/backend/app/models/profile.py)
-  - [`resume.py`](file:///home/sujeeth/Desktop/Echo-Brains/Resume_Builder/backend/app/models/resume.py)
-  - [`job.py`](file:///home/sujeeth/Desktop/Echo-Brains/Resume_Builder/backend/app/models/job.py)
-  - [`ats.py`](file:///home/sujeeth/Desktop/Echo-Brains/Resume_Builder/backend/app/models/ats.py)
-- **Solution**: Set `DateTime(timezone=True)` across all SQLAlchemy model timestamp columns, ensuring full compatibility with PostgreSQL `TIMESTAMP WITH TIME ZONE` and SQLite.
-
-### 2. Backend Initialization & `uv` Migration (`/backend`)
-- Created a clean `backend` directory using `uv init --app --name backend .` and `uv venv`.
-- Transferred all core application modules (`app/`), unit tests (`tests/`), environment configs (`.env`), and manifests (`pyproject.toml`, `requirements.txt`).
-- Configured [`backend/pyproject.toml`](file:///home/sujeeth/Desktop/Echo-Brains/Resume_Builder/backend/pyproject.toml) with `[tool.hatch.build.targets.wheel] packages = ["app"]`.
-- Installed dependencies using `uv pip install -r requirements.txt` and spaCy language model.
-- Verified test suite with `uv run pytest tests/` (**4/4 tests passed**).
-
-### 3. Zaro-Inspired Minimalist Frontend (`/frontend`)
-- **Path Aliases & Shadcn Setup**: Configured `@/*` path alias in [`tsconfig.json`](file:///home/sujeeth/Desktop/Echo-Brains/Resume_Builder/frontend/tsconfig.json), [`tsconfig.app.json`](file:///home/sujeeth/Desktop/Echo-Brains/Resume_Builder/frontend/tsconfig.app.json), and [`vite.config.ts`](file:///home/sujeeth/Desktop/Echo-Brains/Resume_Builder/frontend/vite.config.ts). Installed `shadcn/ui` components (`card`, `button`, `badge`, `input`, `tabs`, `dialog`, `dropdown-menu`, `avatar`).
-- **CSS Theme System**: Implemented warm bone/chalk neutral palette (`--background`, `--foreground`, `--card`, `--border`, `--muted`, `--accent`, `--primary`) in [`src/index.css`](file:///home/sujeeth/Desktop/Echo-Brains/Resume_Builder/frontend/src/index.css).
-- **Zustand State Store**: Built [`src/store/useStore.ts`](file:///home/sujeeth/Desktop/Echo-Brains/Resume_Builder/frontend/src/store/useStore.ts) managing JWT tokens, candidate profile, resumes list, current target job, and ATS reports.
-- **Routing**: Set up `react-router` v7 in [`src/App.tsx`](file:///home/sujeeth/Desktop/Echo-Brains/Resume_Builder/frontend/src/App.tsx).
-- **Application Pages**:
-  - **Overview (`/`)**: Hero banner, interactive Zaro prompt simulation bar, 3-card bento grid, feature metrics.
-  - **Authentication (`/auth`)**: JWT Login and Registration tabbed form.
-  - **Profile (`/dashboard`)**: Candidate profile manager (education, experience, projects, skills taxonomy).
-  - **Resumes & PDF (`/resumes`)**: Resume snapshot builder, ReportLab template selector, and PDF downloader.
-  - **ATS Engine (`/ats`)**: Job posting text analyzer, spaCy skill extraction, pgvector 384d embedding match, and 4-part score report gauge.
-  - **AI Lab (`/ai-lab`)**: Generative AI bullet improver, summary builder, cover letter generator, and interview prep synthesizer.
-
-### 4. Candidate Onboarding, Zero-Assumption Data Model & Raw Resume ATS Analyzer
-- **Multi-Step Onboarding Wizard ([`OnboardingPage.tsx`](file:///home/sujeeth/Desktop/Echo-Brains/Resume_Builder/frontend/src/pages/OnboardingPage.tsx))**:
-  - Built a 5-step wizard capturing Personal Details, Experience, Education, Skills Taxonomy, and Projects.
-  - Added atomic bulk profile submission endpoint `POST /api/profile/onboard` saving all candidate data directly to PostgreSQL.
-  - Configured automatic post-registration redirect to `/onboarding`.
-- **Zero-Assumption Policy**:
-  - Eliminated all hardcoded string assumptions and sample fallbacks across `DashboardPage.tsx`, `ATSAnalyzerPage.tsx`, `AILabPage.tsx`, and `AuthPage.tsx`.
-  - Resumes are generated **strictly** from candidate data stored in the database.
-- **Raw Resume Text Dump & File Upload ATS Analyzer ([`ATSAnalyzerPage.tsx`](file:///home/sujeeth/Desktop/Echo-Brains/Resume_Builder/frontend/src/pages/ATSAnalyzerPage.tsx))**:
-  - Built PDF, DOCX, and TXT file upload parsing powered by `pypdf` and `python-docx` via [`document_service.py`](file:///home/sujeeth/Desktop/Echo-Brains/Resume_Builder/backend/app/services/document_service.py).
-  - Integrated `POST /api/ats/upload-and-analyze` allowing candidates to upload their resume file against a job description text.
-  - Automatically extracts raw resume text, parses spaCy NLP skills, computes 4-part score breakdown (Keyword, Semantic Vector, Skills, Structure), and displays priority missing keyword recommendations.
+This document provides a comprehensive overview of how the **AI Career Engine & Resume Optimization Platform** works, including architectural flow diagrams, data pipelines, module interactions, and execution flows.
 
 ---
 
-## Verification Results & Status
+## High-Level System Architecture
 
-| Component | Execution Command | Result | Live Endpoint |
-|---|---|---|---|
-| **Database Container** | `docker compose up -d` | Container active (`resume_builder_db`) | `localhost:5432` |
-| **Backend Tests** | `cd backend && uv run pytest tests/` | **4 / 4 Passed** | N/A |
-| **Backend Server** | `uv run uvicorn app.main:app --host 0.0.0.0 --port 8000` | **Running Live** | [`http://localhost:8000`](http://localhost:8000) |
-| **Frontend Build** | `cd frontend && npm run build` | **0 Errors (`tsc -b && vite build`)** | N/A |
-| **Frontend Dev Server** | `npm run dev` | **Running Live** | [`http://localhost:5173`](http://localhost:5173) |
+The application is built on a decoupled full-stack architecture combining a single-page React frontend, asynchronous FastAPI backend services, local NLP vector engines, and a PostgreSQL database with `pgvector` extension.
+
+```mermaid
+graph TD
+    Client["Client Browser (Vite + React 18 + Tailwind v4 + Motion)"]
+    API["FastAPI Application Backend (Python 3.12 / Uvicorn)"]
+    DB[("PostgreSQL 16 + pgvector Database (Docker Container)")]
+    
+    spaCy["spaCy NLP Engine (en_core_web_sm)"]
+    ST["SentenceTransformers (all-MiniLM-L6-v2 384d Vectors)"]
+    PDF["ReportLab Server-Side PDF Engine"]
+    Gemini["Google Gemini Generative AI API"]
+
+    Client <-->|REST APIs / Bearer JWT| API
+    API <-->|SQLAlchemy 2.0 Async / asyncpg| DB
+    API -->|Skill & Keyword Extraction| spaCy
+    API -->|Dense Vector Cosine Match| ST
+    API -->|Pixel-Perfect PDF Render| PDF
+    API -->|Summaries, Cover Letters & JD Quizzes| Gemini
+```
 
 ---
 
-## End-to-End Workflow Validation
+## Candidate Journey & Execution Flow
 
-1. **User Registration & Onboarding Redirect**: Newly registered candidates are automatically navigated to `/onboarding` to enter their real profile details.
-2. **Profile & DB Persistence**: Multi-step onboarding details (Personal Info, Experience, Education, Skills, Projects) are committed atomically to PostgreSQL via `POST /api/profile/onboard`.
-3. **Zero-Assumption Resume Generation**: Resumes and ReportLab PDFs are rendered **strictly** using stored DB candidate profiles.
-4. **Resume Text Dump ATS Scoring**: Candidates can paste any raw resume text alongside job postings to compute 384d vector similarity and priority recommendations.
-5. **ReportLab PDF Generation**: Downloaded ATS-compliant PDF document streamed directly from FastAPI backend endpoint (`/api/pdf/{resume_id}/download`).
+```mermaid
+graph LR
+    Auth["1. Authentication (/auth)"] --> Onboard["2. Onboarding Wizard (/onboarding)"]
+    Onboard --> DB[("3. Candidate Profile DB")]
+    DB --> Dashboard["4. Dashboard Manager (/dashboard)"]
+    DB --> ATS["5. ATS Vector Engine (/ats)"]
+    DB --> Resume["6. ReportLab PDF Builder (/resumes)"]
+    DB --> Prep["7. Skill Assessment Tests (/interview-prep)"]
+```
+
+### Step 1: Candidate Authentication & Authorization
+1. Candidates register or log in on `/auth`.
+2. FastAPI hashes passwords using bcrypt and issues signed JWT access tokens with configurable expiration (`ACCESS_TOKEN_EXPIRE_MINUTES`).
+3. Frontend stores the token in Zustand state (`frontend/src/store/useStore.ts`).
+4. Protected routes (`ProtectedRoute`) enforce authentication across all candidate application pages.
+
+### Step 2: Profile Onboarding & Persistence
+1. Newly registered candidates are automatically routed to `/onboarding`.
+2. The multi-step wizard collects Personal Info, Work Experience, Education (with native month pickers), Technical Projects, Technical Skills, and Certifications.
+3. Upon completion, data is submitted to `POST /api/profile/onboard` and stored atomically in PostgreSQL.
+
+### Step 3: Candidate Dashboard & Profile Editing
+1. Candidates can update any section of their profile directly on `/dashboard`.
+2. Date inputs use HTML5 month pickers (`type="month"`) for precise start and graduation/end dates.
+3. Profile skills are automatically categorized into Languages, Frameworks, Databases, Tools, Cloud & DevOps, and AI/ML.
+
+---
+
+## 4-Part Deterministic ATS Compatibility Engine Pipeline
+
+The ATS engine evaluates a candidate's resume or profile against a target job description through a transparent, 4-part scoring algorithm:
+
+```mermaid
+graph TD
+    JobText["Target Job Description"]
+    ResumeText["Candidate Resume / Profile / Document"]
+    
+    subgraph ATS Engine Pipeline
+        KW["1. Keyword Overlap (40%)<br/>Exact & Partial String Matching"]
+        Vec["2. Semantic Vector Similarity (30%)<br/>SentenceTransformers 384d Cosine Distance"]
+        Skill["3. spaCy Skill Coverage (20%)<br/>Extracted Technical Entity Overlap"]
+        Struct["4. Section Structure Check (10%)<br/>Contact, Summary, Experience, Projects"]
+    end
+    
+    JobText --> KW
+    JobText --> Vec
+    JobText --> Skill
+    
+    ResumeText --> KW
+    ResumeText --> Vec
+    ResumeText --> Skill
+    ResumeText --> Struct
+    
+    KW --> Score["Final ATS Compatibility Score (0 - 100)"]
+    Vec --> Score
+    Skill --> Score
+    Struct --> Score
+    
+    Score --> Recommendations["Priority Keyword Recommendations<br/>(High, Medium, Low)"]
+```
+
+### ATS Input Modes
+1. **Document File Upload**: Accepts PDF (`pypdf`), DOCX (`python-docx`), or TXT files.
+2. **Raw Text Dump**: Paste raw resume text directly into the evaluation editor.
+3. **Database Candidate Profile**: Evaluates stored PostgreSQL candidate profile data.
+
+---
+
+## Technical Interview & Skill Assessment Pipeline
+
+```mermaid
+graph TD
+    RoleSelect["Select Engineering Role (/interview-prep)"]
+    RoleDetail["Navigate to Role Page (/interview-prep/:roleId)"]
+    STAR["Review Technical FAQs & STAR Model Answers"]
+    SelectDiff["Select Test Difficulty<br/>(Fresher: 10Q | Intermediate: 15Q | Senior: 20Q)"]
+    TakeTest["Take Interactive Multiple Choice Assessment"]
+    Evaluate["Score Calculation & Detailed Option Explanations"]
+    SaveHistory[("Persist Quiz Attempt to PostgreSQL Database")]
+
+    RoleSelect --> RoleDetail
+    RoleDetail --> STAR
+    RoleDetail --> SelectDiff
+    SelectDiff --> TakeTest
+    TakeTest --> Evaluate
+    Evaluate --> SaveHistory
+```
+
+### Operational Steps for Interview Prep
+1. **Role Exploration**: Candidates select from 8 software engineering roles (Full Stack AI, Backend Python, Frontend React, DevOps AWS, Data Science ML, Java Spring Boot, Mobile App, Cybersecurity).
+2. **Dynamic Deep-Linking**: Navigates to `/interview-prep/:roleId` with clean URL routing.
+3. **STAR FAQs Review**: Candidates read top technical questions paired with Situation, Task, Action, Result (STAR) model answers.
+4. **Interactive Skill Tests**: Candidates take multiple choice tests with smooth Framer Motion `layoutId` difficulty tab transitions.
+5. **Database Attempt History**: Test results (score, total, percentage, answers) are persisted to the database and displayed under "My Test Attempts".
+6. **Custom JD Quiz Generator**: Converts custom job posting text into a 5-10 question skill evaluation quiz.
+
+---
+
+## ReportLab Server-Side PDF Rendering Pipeline
+
+```mermaid
+graph LR
+    ProfileDB[("PostgreSQL Candidate Profile")] --> Fetch["Fetch Profile Data"]
+    Fetch --> Template["Select Template Style<br/>(Professional / Modern / Minimalist)"]
+    Template --> ReportLab["ReportLab Flowable Engine"]
+    ReportLab --> PDFStream["Binary PDF Stream (application/pdf)"]
+    PDFStream --> Browser["Client Browser Direct Download"]
+```
+
+### PDF Rendering Features
+- Zero HTML canvas rasterization; uses true native vector text rendering.
+- Text in generated PDFs is 100% searchable and selectable by automated ATS parsers.
+- Clean typography hierarchy, strict layout boundaries, and bullet point formatting.
+
+---
+
+## Verification & Build Validation Commands
+
+### 1. Database Service Status
+```bash
+docker compose up -d
+```
+Verifies PostgreSQL 16 container status with `pgvector` extension on port `5432`.
+
+### 2. Backend Automated Test Suite
+```bash
+cd backend
+uv run pytest tests/
+```
+Executes pytest suites for auth, profile, job parsing, ATS scoring, quiz attempts, and PDF rendering.
+
+### 3. Frontend Production Build Check
+```bash
+cd frontend
+npm run build
+```
+Executes TypeScript type checking (`tsc -b`) and Vite production bundle compilation.
