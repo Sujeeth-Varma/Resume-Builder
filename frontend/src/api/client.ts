@@ -45,9 +45,12 @@ export interface ATSReport {
   structure_score: number;
   matched_keywords: string[];
   missing_keywords: {
-    high: string[];
-    medium: string[];
-    low: string[];
+    high?: string[];
+    medium?: string[];
+    low?: string[];
+    high_priority?: string[];
+    medium_priority?: string[];
+    low_priority?: string[];
   };
   recommendations: string[];
   structure_issues: string[];
@@ -145,6 +148,32 @@ export const api = {
     return res.data;
   },
 
+  analyzeRawATS: async (resumeText: string, jobDescriptionText: string): Promise<ATSReport> => {
+    const res = await apiClient.post('/ats/analyze-raw', {
+      resume_text: resumeText,
+      job_description_text: jobDescriptionText,
+    });
+    return res.data;
+  },
+
+  uploadAndAnalyzeATS: async (file: File, jobDescriptionText: string): Promise<ATSReport & { filename: string; extracted_resume_text: string }> => {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('job_description_text', jobDescriptionText);
+
+    const res = await apiClient.post('/ats/upload-and-analyze', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+    return res.data;
+  },
+
+  onboardProfile: async (payload: UserProfile): Promise<UserProfile> => {
+    const res = await apiClient.post('/profile/onboard', payload);
+    return res.data;
+  },
+
   // Download PDF
   downloadPDF: async (resumeId: string) => {
     const res = await apiClient.get(`/pdf/${resumeId}/download`, {
@@ -177,6 +206,40 @@ export const api = {
 
   generateInterviewPrep: async (payload: { target_role: string; job_description_text: string }) => {
     const res = await apiClient.post('/ai/interview-prep', payload);
+    return res.data;
+  },
+
+  // Interview Roles & Quiz API
+  getInterviewRoles: async () => {
+    const res = await apiClient.get('/interview/roles');
+    return res.data;
+  },
+
+  getInterviewRoleDetails: async (roleId: string, difficulty: string = 'fresher') => {
+    const res = await apiClient.get(`/interview/roles/${roleId}?difficulty=${difficulty}`);
+    return res.data;
+  },
+
+  saveQuizAttempt: async (payload: {
+    role_id: string;
+    role_title: string;
+    difficulty: string;
+    score: number;
+    total_questions: number;
+    percentage: number;
+    answers_summary?: any;
+  }) => {
+    const res = await apiClient.post('/interview/attempts', payload);
+    return res.data;
+  },
+
+  getQuizAttempts: async () => {
+    const res = await apiClient.get('/interview/attempts');
+    return res.data;
+  },
+
+  generateJDQuiz: async (jobDescriptionText: string) => {
+    const res = await apiClient.post('/interview/generate-jd-quiz', { job_description_text: jobDescriptionText });
     return res.data;
   },
 };

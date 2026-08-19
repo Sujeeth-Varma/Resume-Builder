@@ -21,3 +21,31 @@ class ATSAnalysisResponse(BaseModel):
     structure_issues: List[str]
     created_at: datetime
     model_config = ConfigDict(from_attributes=True)
+
+class RawATSAnalyzeRequest(BaseModel):
+    resume_text: str
+    job_description_text: str
+
+class RawATSAnalysisResponse(BaseModel):
+    overall_score: float
+    keyword_score: float
+    semantic_score: float
+    skills_score: float
+    structure_score: float
+    matched_keywords: List[str]
+    missing_keywords: Dict[str, List[str]]
+    recommendations: List[str]
+    structure_issues: List[str]
+
+class FileUploadATSAnalysisResponse(BaseModel):
+    filename: str
+    extracted_resume_text: str
+    overall_score: float
+    keyword_score: float
+    semantic_score: float
+    skills_score: float
+    structure_score: float
+    matched_keywords: List[str]
+    missing_keywords: Dict[str, List[str]]
+    recommendations: List[str]
+    structure_issues: List[str]

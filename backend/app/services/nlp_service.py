@@ -4,24 +4,77 @@ from typing import List, Dict, Set, Any
 # Curated Technical & Soft Skill Taxonomy Dictionary
 KNOWN_SKILLS = {
     # Programming Languages
-    "python", "java", "javascript", "typescript", "c++", "c#", "go", "golang", "rust", "ruby", "php", "sql", "html", "css", "kotlin", "swift",
+    "python", "java", "javascript", "typescript", "c++", "c#", "go", "golang", "rust", "ruby", "php", "sql", "html", "css", "kotlin", "swift", "r", "scala", "bash",
     # Frameworks & Libraries
-    "react", "react.js", "next.js", "vue", "vue.js", "angular", "node.js", "express", "fastapi", "flask", "django", "spring", "spring boot", "dot net", ".net", "hibernate", "tailwind", "bootstrap",
+    "react", "react.js", "next.js", "vue", "vue.js", "angular", "node.js", "express", "fastapi", "flask", "django", "spring", "spring boot", "dot net", ".net", "hibernate", "tailwind", "bootstrap", "pytorch", "tensorflow", "scikit-learn", "pandas", "numpy", "langchain", "langgraph",
     # Databases
-    "postgresql", "postgres", "mysql", "mongodb", "redis", "oracle", "sqlite", "dynamodb", "elasticsearch", "cassandra", "neo4j",
+    "postgresql", "postgres", "mysql", "mongodb", "redis", "oracle", "sqlite", "dynamodb", "elasticsearch", "cassandra", "neo4j", "pinecone", "qdrant", "chromadb", "pymongo", "sqlalchemy",
     # Cloud & DevOps
-    "aws", "azure", "gcp", "google cloud", "docker", "kubernetes", "k8s", "jenkins", "terraform", "ansible", "gitlab ci", "github actions", "linux", "nginx",
+    "aws", "azure", "gcp", "google cloud", "docker", "kubernetes", "k8s", "jenkins", "terraform", "ansible", "gitlab ci", "github actions", "linux", "nginx", "ci/cd",
     # Tools & Concepts
-    "git", "github", "gitlab", "jira", "postman", "rest api", "restful api", "graphql", "microservices", "system design", "agile", "scrum", "ci/cd",
+    "git", "github", "gitlab", "jira", "postman", "swagger", "rest api", "restful api", "graphql", "microservices", "system design", "agile", "scrum", "excel", "powerbi", "figma",
     # AI/ML & Data
-    "machine learning", "deep learning", "nlp", "spacy", "pytorch", "tensorflow", "scikit-learn", "pandas", "numpy", "opencv", "llm", "rag", "embeddings",
+    "machine learning", "deep learning", "nlp", "spacy", "opencv", "llm", "rag", "embeddings",
     # Soft Skills
     "communication", "problem solving", "leadership", "teamwork", "time management", "critical thinking", "adaptability"
+}
+
+SKILL_CATEGORIES = {
+    "python": "Languages", "java": "Languages", "javascript": "Languages", "typescript": "Languages",
+    "c++": "Languages", "c#": "Languages", "go": "Languages", "golang": "Languages", "rust": "Languages",
+    "ruby": "Languages", "php": "Languages", "sql": "Languages", "html": "Languages", "css": "Languages",
+    "kotlin": "Languages", "swift": "Languages", "r": "Languages", "scala": "Languages", "bash": "Languages",
+
+    "react": "Frameworks", "react.js": "Frameworks", "next.js": "Frameworks", "vue": "Frameworks",
+    "vue.js": "Frameworks", "angular": "Frameworks", "node.js": "Frameworks", "express": "Frameworks",
+    "fastapi": "Frameworks", "flask": "Frameworks", "django": "Frameworks", "spring": "Frameworks",
+    "spring boot": "Frameworks", "dot net": "Frameworks", ".net": "Frameworks", "hibernate": "Frameworks",
+    "tailwind": "Frameworks", "bootstrap": "Frameworks", "pytorch": "Frameworks", "tensorflow": "Frameworks",
+    "scikit-learn": "Frameworks", "pandas": "Frameworks", "numpy": "Frameworks", "langchain": "Frameworks",
+    "langgraph": "Frameworks",
+
+    "postgresql": "Databases", "postgres": "Databases", "mysql": "Databases", "mongodb": "Databases",
+    "redis": "Databases", "oracle": "Databases", "sqlite": "Databases", "dynamodb": "Databases",
+    "elasticsearch": "Databases", "cassandra": "Databases", "neo4j": "Databases", "pinecone": "Databases",
+    "qdrant": "Databases", "chromadb": "Databases", "pymongo": "Databases", "sqlalchemy": "Databases",
+
+    "aws": "Cloud & DevOps", "azure": "Cloud & DevOps", "gcp": "Cloud & DevOps", "google cloud": "Cloud & DevOps",
+    "docker": "Cloud & DevOps", "kubernetes": "Cloud & DevOps", "k8s": "Cloud & DevOps", "jenkins": "Cloud & DevOps",
+    "terraform": "Cloud & DevOps", "ansible": "Cloud & DevOps", "gitlab ci": "Cloud & DevOps",
+    "github actions": "Cloud & DevOps", "linux": "Cloud & DevOps", "nginx": "Cloud & DevOps", "ci/cd": "Cloud & DevOps",
+
+    "git": "Tools", "github": "Tools", "gitlab": "Tools", "jira": "Tools", "postman": "Tools",
+    "swagger": "Tools", "rest api": "Tools", "restful api": "Tools", "graphql": "Tools",
+    "microservices": "Tools", "system design": "Tools", "excel": "Tools", "powerbi": "Tools", "figma": "Tools",
+
+    "machine learning": "AI & ML", "deep learning": "AI & ML", "nlp": "AI & ML", "spacy": "AI & ML",
+    "opencv": "AI & ML", "llm": "AI & ML", "rag": "AI & ML", "embeddings": "AI & ML",
+
+    "communication": "Soft Skills", "problem solving": "Soft Skills", "leadership": "Soft Skills",
+    "teamwork": "Soft Skills", "time management": "Soft Skills", "critical thinking": "Soft Skills", "adaptability": "Soft Skills"
 }
 
 class NLPService:
     def __init__(self):
         pass
+
+    def categorize_skill(self, skill_name: str) -> str:
+        if not skill_name:
+            return "Other"
+        key = skill_name.strip().lower()
+        if key in SKILL_CATEGORIES:
+            return SKILL_CATEGORIES[key]
+        
+        # Keyword heuristic matching
+        if any(w in key for w in ["js", "py", "script", "code", "lang"]):
+            return "Languages"
+        if any(w in key for w in ["db", "data", "sql", "base", "store"]):
+            return "Databases"
+        if any(w in key for w in ["cloud", "aws", "docker", "ops", "kube", "deploy"]):
+            return "Cloud & DevOps"
+        if any(w in key for w in ["boot", "framework", "net", "app", "ui"]):
+            return "Frameworks"
+        return "Other"
 
     def clean_text(self, text: str) -> str:
         if not text:

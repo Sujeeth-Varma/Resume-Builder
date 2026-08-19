@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { motion } from 'motion/react';
 import { useNavigate } from 'react-router';
+import { useStore } from '../store/useStore';
 import { PromptBar } from '../components/shared/PromptBar';
 import { MotionCard } from '../components/shared/MotionCard';
 import { Button } from '../components/ui/button';
@@ -9,6 +10,17 @@ import { Sparkles, ArrowRight, FileCheck, Layers, Target, Download } from 'lucid
 
 export const LandingPage: React.FC = () => {
   const navigate = useNavigate();
+  const { token } = useStore();
+
+  useEffect(() => {
+    if (token) {
+      navigate('/dashboard', { replace: true });
+    }
+  }, [token, navigate]);
+
+  if (token) {
+    return null;
+  }
 
   return (
     <div className="space-y-24 py-8 sm:py-12">
@@ -31,8 +43,8 @@ export const LandingPage: React.FC = () => {
           transition={{ duration: 0.5, delay: 0.1 }}
           className="text-4xl sm:text-6xl font-extrabold tracking-tight text-[hsl(var(--foreground))] leading-[1.1]"
         >
-          One workspace. Three engines. <br className="hidden sm:inline" />
-          <span className="text-[hsl(var(--primary))]">Each one makes your resume better.</span>
+          Engineered for the job you want. <br className="hidden sm:inline" />
+          <span className="text-[hsl(var(--primary))]">AI-Optimized. ATS-Compliant.</span>
         </motion.h1>
 
         <motion.p
@@ -41,7 +53,7 @@ export const LandingPage: React.FC = () => {
           transition={{ duration: 0.5, delay: 0.2 }}
           className="text-base sm:text-lg text-[hsl(var(--muted-foreground))] max-w-2xl mx-auto leading-relaxed"
         >
-          Combine spaCy NLP, SentenceTransformers embeddings, and ReportLab PDF rendering into one free platform.
+          Combine spaCy NLP skill extraction, dense vector semantic matching, and ReportLab PDF rendering into one powerful career platform.
         </motion.p>
 
         {/* Hero Actions */}
@@ -90,20 +102,20 @@ export const LandingPage: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           
           {/* Bento Tile 1 */}
-          <MotionCard delay={0.1} className="space-y-4 flex flex-col justify-between">
+          <MotionCard delay={0.1} className="group space-y-4 flex flex-col justify-between">
             <div className="space-y-3">
-              <div className="w-10 h-10 rounded-xl bg-[hsl(var(--secondary))] text-[hsl(var(--primary))] flex items-center justify-center">
+              <div className="w-10 h-10 rounded-xl bg-[hsl(var(--secondary))] text-[hsl(var(--primary))] flex items-center justify-center transition-transform duration-300 group-hover:scale-110">
                 <Layers className="w-5 h-5" />
               </div>
-              <h3 className="text-lg font-bold text-[hsl(var(--foreground))] tracking-tight">
+              <h3 className="text-lg font-bold text-[hsl(var(--foreground))] tracking-tight group-hover:text-[hsl(var(--primary))] transition-colors duration-300">
                 1. Your Context, Captured.
               </h3>
               <p className="text-xs text-[hsl(var(--muted-foreground))] leading-relaxed">
-                Structured candidate profiles containing skills taxonomy, work experiences, education, and technical projects.
+                Structured candidate profiles containing categorized skills, work experiences, education, and technical projects.
               </p>
             </div>
 
-            <div className="p-3 rounded-xl bg-[hsl(var(--secondary)/0.5)] border border-[hsl(var(--border))] font-mono text-[11px] space-y-1.5 text-[hsl(var(--muted-foreground))]">
+            <div className="p-3 rounded-xl bg-[hsl(var(--secondary)/0.5)] border border-[hsl(var(--border))] font-mono text-[11px] space-y-1.5 text-[hsl(var(--muted-foreground))] group-hover:border-[hsl(var(--primary)/0.2)] transition-colors duration-300">
               <div className="flex items-center justify-between">
                 <span>• Python & FastAPI</span>
                 <span className="text-emerald-500">Verified</span>
@@ -120,12 +132,12 @@ export const LandingPage: React.FC = () => {
           </MotionCard>
 
           {/* Bento Tile 2 */}
-          <MotionCard delay={0.2} className="space-y-4 flex flex-col justify-between">
+          <MotionCard delay={0.2} className="group space-y-4 flex flex-col justify-between">
             <div className="space-y-3">
-              <div className="w-10 h-10 rounded-xl bg-[hsl(var(--secondary))] text-[hsl(var(--primary))] flex items-center justify-center">
+              <div className="w-10 h-10 rounded-xl bg-[hsl(var(--secondary))] text-[hsl(var(--primary))] flex items-center justify-center transition-transform duration-300 group-hover:scale-110">
                 <Target className="w-5 h-5" />
               </div>
-              <h3 className="text-lg font-bold text-[hsl(var(--foreground))] tracking-tight">
+              <h3 className="text-lg font-bold text-[hsl(var(--foreground))] tracking-tight group-hover:text-[hsl(var(--primary))] transition-colors duration-300">
                 2. Your ATS Engine, Scoring.
               </h3>
               <p className="text-xs text-[hsl(var(--muted-foreground))] leading-relaxed">
@@ -133,24 +145,24 @@ export const LandingPage: React.FC = () => {
               </p>
             </div>
 
-            <div className="p-3 rounded-xl bg-[hsl(var(--secondary)/0.5)] border border-[hsl(var(--border))] space-y-2">
+            <div className="p-3 rounded-xl bg-[hsl(var(--secondary)/0.5)] border border-[hsl(var(--border))] space-y-2 group-hover:border-[hsl(var(--primary)/0.2)] transition-colors duration-300">
               <div className="flex items-center justify-between text-xs font-mono">
                 <span>ATS Compatibility</span>
                 <span className="font-bold text-[hsl(var(--primary))]">88.5 / 100</span>
               </div>
               <div className="w-full h-1.5 rounded-full bg-[hsl(var(--border))] overflow-hidden">
-                <div className="w-[88.5%] h-full bg-[hsl(var(--primary))] rounded-full" />
+                <div className="w-[88.5%] h-full bg-[hsl(var(--primary))] rounded-full transition-all duration-500 group-hover:brightness-110" />
               </div>
             </div>
           </MotionCard>
 
           {/* Bento Tile 3 */}
-          <MotionCard delay={0.3} className="space-y-4 flex flex-col justify-between">
+          <MotionCard delay={0.3} className="group space-y-4 flex flex-col justify-between">
             <div className="space-y-3">
-              <div className="w-10 h-10 rounded-xl bg-[hsl(var(--secondary))] text-[hsl(var(--primary))] flex items-center justify-center">
+              <div className="w-10 h-10 rounded-xl bg-[hsl(var(--secondary))] text-[hsl(var(--primary))] flex items-center justify-center transition-transform duration-300 group-hover:scale-110">
                 <Download className="w-5 h-5" />
               </div>
-              <h3 className="text-lg font-bold text-[hsl(var(--foreground))] tracking-tight">
+              <h3 className="text-lg font-bold text-[hsl(var(--foreground))] tracking-tight group-hover:text-[hsl(var(--primary))] transition-colors duration-300">
                 3. Your PDF Resume, Downloaded.
               </h3>
               <p className="text-xs text-[hsl(var(--muted-foreground))] leading-relaxed">
@@ -161,7 +173,7 @@ export const LandingPage: React.FC = () => {
             <Button
               size="sm"
               variant="outline"
-              className="w-full text-xs font-mono gap-2 rounded-lg border-[hsl(var(--border))]"
+              className="w-full text-xs font-mono gap-2 rounded-lg border-[hsl(var(--border))] group-hover:border-[hsl(var(--primary)/0.4)] group-hover:bg-[hsl(var(--primary)/0.05)] transition-all duration-300"
               onClick={() => navigate('/resumes')}
             >
               <FileCheck className="w-3.5 h-3.5 text-emerald-500" />

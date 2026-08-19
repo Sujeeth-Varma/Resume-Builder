@@ -3,35 +3,40 @@ from app.services.nlp_service import nlp_service
 from app.services.embedding_service import embedding_service
 
 class ATSService:
-    def analyze_compatibility(self, resume_content: Dict[str, Any], job_raw_text: str) -> Dict[str, Any]:
+    def analyze_compatibility(self, resume_content: Any, job_raw_text: str) -> Dict[str, Any]:
         # 1. Prepare raw text strings
-        resume_text_blocks = []
-        
-        # Summary
-        if resume_content.get("summary"):
-            resume_text_blocks.append(resume_content["summary"])
+        if isinstance(resume_content, str):
+            full_resume_text = resume_content
+        elif isinstance(resume_content, dict):
+            resume_text_blocks = []
             
-        # Skills
-        resume_skills_list = resume_content.get("skills", [])
-        if isinstance(resume_skills_list, list):
-            skill_names = [s.get("name", s) if isinstance(s, dict) else str(s) for s in resume_skills_list]
-            resume_text_blocks.append(" ".join(skill_names))
-            
-        # Experience
-        for exp in resume_content.get("experience", []):
-            if isinstance(exp, dict):
-                resume_text_blocks.append(exp.get("job_title", ""))
-                resume_text_blocks.append(" ".join(exp.get("responsibilities", [])))
-                resume_text_blocks.append(" ".join(exp.get("achievements", [])))
+            # Summary
+            if resume_content.get("summary"):
+                resume_text_blocks.append(resume_content["summary"])
+                
+            # Skills
+            resume_skills_list = resume_content.get("skills", [])
+            if isinstance(resume_skills_list, list):
+                skill_names = [s.get("name", s) if isinstance(s, dict) else str(s) for s in resume_skills_list]
+                resume_text_blocks.append(" ".join(skill_names))
+                
+            # Experience
+            for exp in resume_content.get("experience", []):
+                if isinstance(exp, dict):
+                    resume_text_blocks.append(exp.get("job_title", ""))
+                    resume_text_blocks.append(" ".join(exp.get("responsibilities", [])))
+                    resume_text_blocks.append(" ".join(exp.get("achievements", [])))
 
-        # Projects
-        for proj in resume_content.get("projects", []):
-            if isinstance(proj, dict):
-                resume_text_blocks.append(proj.get("project_name", ""))
-                resume_text_blocks.append(proj.get("description", ""))
-                resume_text_blocks.append(" ".join(proj.get("bullet_points", [])))
+            # Projects
+            for proj in resume_content.get("projects", []):
+                if isinstance(proj, dict):
+                    resume_text_blocks.append(proj.get("project_name", ""))
+                    resume_text_blocks.append(proj.get("description", ""))
+                    resume_text_blocks.append(" ".join(proj.get("bullet_points", [])))
 
-        full_resume_text = " ".join(resume_text_blocks)
+            full_resume_text = " ".join(resume_text_blocks)
+        else:
+            full_resume_text = str(resume_content or "")
 
         # 2. Extract Skills & Keywords
         resume_extracted_skills = set([s.lower() for s in nlp_service.extract_skills(full_resume_text)])
@@ -69,18 +74,33 @@ class ATSService:
         structure_score = 10.0
         structure_issues = []
 
-        if not resume_content.get("summary"):
-            structure_score -= 2.0
-            structure_issues.append("Missing Professional Summary section.")
-        if not resume_content.get("experience") and not resume_content.get("projects"):
-            structure_score -= 4.0
-            structure_issues.append("Missing both Experience and Projects sections.")
-        if not resume_skills_list:
-            structure_score -= 2.0
-            structure_issues.append("Missing dedicated Skills section.")
-        if not resume_content.get("education"):
-            structure_score -= 2.0
-            structure_issues.append("Missing Education section.")
+        if isinstance(resume_content, dict):
+            if not resume_content.get("summary") and not resume_content.get("objective") and not resume_content.get("career_objective"):
+                structure_score -= 2.0
+                structure_issues.append("Missing Professional Summary or Career Objective section.")
+            if not resume_content.get("experience") and not resume_content.get("projects"):
+                structure_score -= 4.0
+                structure_issues.append("Missing both Experience and Projects sections.")
+            if not resume_content.get("skills"):
+                structure_score -= 2.0
+                structure_issues.append("Missing dedicated Skills section.")
+            if not resume_content.get("education"):
+                structure_score -= 2.0
+                structure_issues.append("Missing Education section.")
+        else:
+            lower_text = full_resume_text.lower()
+            if not any(k in lower_text for k in ["summary", "objective", "career objective", "profile", "about", "overview", "executive summary"]):
+                structure_score -= 2.0
+                structure_issues.append("Missing Professional Summary or Career Objective section.")
+            if not any(k in lower_text for k in ["experience", "work", "employment", "project", "projects"]):
+                structure_score -= 4.0
+                structure_issues.append("Missing both Experience and Projects sections.")
+            if not any(k in lower_text for k in ["skill", "skills", "technologies", "tech"]):
+                structure_score -= 2.0
+                structure_issues.append("Missing dedicated Skills section.")
+            if not any(k in lower_text for k in ["education", "academic", "degree", "university", "college"]):
+                structure_score -= 2.0
+                structure_issues.append("Missing Education section.")
 
         structure_score = round(max(0.0, structure_score), 2)
 

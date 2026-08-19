@@ -13,6 +13,7 @@ from app.api.jobs import router as jobs_router
 from app.api.ats import router as ats_router
 from app.api.ai import router as ai_router
 from app.api.pdf import router as pdf_router
+from app.api.interview import router as interview_router
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -45,6 +46,7 @@ app.include_router(jobs_router, prefix=f"{settings.API_V1_STR}/jobs", tags=["Job
 app.include_router(ats_router, prefix=f"{settings.API_V1_STR}/ats", tags=["ATS Compatibility"])
 app.include_router(ai_router, prefix=f"{settings.API_V1_STR}/ai", tags=["AI Generation"])
 app.include_router(pdf_router, prefix=f"{settings.API_V1_STR}/pdf", tags=["PDF Generation"])
+app.include_router(interview_router, prefix=f"{settings.API_V1_STR}/interview", tags=["Interview Prep"])
 
 @app.get("/")
 async def root():

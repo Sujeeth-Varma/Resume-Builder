@@ -35,6 +35,15 @@ def test_ats_scoring_engine():
     assert report["semantic_score"] > 0
     assert "Python" in report["matched_keywords"] or "Fastapi" in report["matched_keywords"]
 
+def test_ats_scoring_engine_raw_string():
+    raw_resume = "Summary: Experienced Python developer with FastAPI and Docker. Experience: Software Engineer at Acme Corp. Skills: Python, Docker, PostgreSQL. Education: B.Tech Computer Science."
+    job_text = "Seeking Python Engineer with FastAPI, PostgreSQL, Docker, Kubernetes, AWS experience."
+
+    report = ats_service.analyze_compatibility(raw_resume, job_text)
+    assert report["overall_score"] > 30.0
+    assert isinstance(report["overall_score"], float)
+    assert "recommendations" in report
+
 def test_pdf_generation():
     resume_content = {
         "full_name": "Alex Candidate",

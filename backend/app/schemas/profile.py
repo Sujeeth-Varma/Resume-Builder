@@ -115,3 +115,20 @@ class ProfileResponse(ProfileBase):
     skills: List[SkillResponse] = []
     certifications: List[CertificationResponse] = []
     model_config = ConfigDict(from_attributes=True)
+
+
+class BulkProfileOnboard(BaseModel):
+    full_name: str
+    email: str
+    phone: Optional[str] = None
+    location: Optional[str] = None
+    linkedin: Optional[str] = None
+    github: Optional[str] = None
+    portfolio: Optional[str] = None
+    professional_title: Optional[str] = None
+    summary: Optional[str] = None
+    education_items: List[EducationCreate] = []
+    experience_items: List[ExperienceCreate] = []
+    projects: List[ProjectCreate] = []
+    skills: List[SkillCreate] = []
+    certifications: List[CertificationCreate] = []

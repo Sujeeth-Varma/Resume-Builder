@@ -36,6 +36,19 @@ This document provides a comprehensive summary of the end-to-end implementation,
   - **ATS Engine (`/ats`)**: Job posting text analyzer, spaCy skill extraction, pgvector 384d embedding match, and 4-part score report gauge.
   - **AI Lab (`/ai-lab`)**: Generative AI bullet improver, summary builder, cover letter generator, and interview prep synthesizer.
 
+### 4. Candidate Onboarding, Zero-Assumption Data Model & Raw Resume ATS Analyzer
+- **Multi-Step Onboarding Wizard ([`OnboardingPage.tsx`](file:///home/sujeeth/Desktop/Echo-Brains/Resume_Builder/frontend/src/pages/OnboardingPage.tsx))**:
+  - Built a 5-step wizard capturing Personal Details, Experience, Education, Skills Taxonomy, and Projects.
+  - Added atomic bulk profile submission endpoint `POST /api/profile/onboard` saving all candidate data directly to PostgreSQL.
+  - Configured automatic post-registration redirect to `/onboarding`.
+- **Zero-Assumption Policy**:
+  - Eliminated all hardcoded string assumptions and sample fallbacks across `DashboardPage.tsx`, `ATSAnalyzerPage.tsx`, `AILabPage.tsx`, and `AuthPage.tsx`.
+  - Resumes are generated **strictly** from candidate data stored in the database.
+- **Raw Resume Text Dump & File Upload ATS Analyzer ([`ATSAnalyzerPage.tsx`](file:///home/sujeeth/Desktop/Echo-Brains/Resume_Builder/frontend/src/pages/ATSAnalyzerPage.tsx))**:
+  - Built PDF, DOCX, and TXT file upload parsing powered by `pypdf` and `python-docx` via [`document_service.py`](file:///home/sujeeth/Desktop/Echo-Brains/Resume_Builder/backend/app/services/document_service.py).
+  - Integrated `POST /api/ats/upload-and-analyze` allowing candidates to upload their resume file against a job description text.
+  - Automatically extracts raw resume text, parses spaCy NLP skills, computes 4-part score breakdown (Keyword, Semantic Vector, Skills, Structure), and displays priority missing keyword recommendations.
+
 ---
 
 ## Verification Results & Status
@@ -52,8 +65,8 @@ This document provides a comprehensive summary of the end-to-end implementation,
 
 ## End-to-End Workflow Validation
 
-1. **User Registration & Login**: Successful JWT token generation against PostgreSQL database.
-2. **Profile & Skills Management**: Added candidate technical skills (`Python`, `FastAPI`, `PostgreSQL`, `Docker`, `AWS`).
-3. **Job Description Processing**: spaCy extracted required technical skills (`['AWS', 'Docker', 'Fastapi', 'Postgresql', 'Python', 'Rest Api']`) and computed 384d `SentenceTransformers` embeddings stored in PostgreSQL via `pgvector`.
-4. **ATS Compatibility Scoring**: Computed deterministic 4-part compatibility score (40% Keyword, 30% Semantic Embeddings, 20% Skills Overlap, 10% Structure).
+1. **User Registration & Onboarding Redirect**: Newly registered candidates are automatically navigated to `/onboarding` to enter their real profile details.
+2. **Profile & DB Persistence**: Multi-step onboarding details (Personal Info, Experience, Education, Skills, Projects) are committed atomically to PostgreSQL via `POST /api/profile/onboard`.
+3. **Zero-Assumption Resume Generation**: Resumes and ReportLab PDFs are rendered **strictly** using stored DB candidate profiles.
+4. **Resume Text Dump ATS Scoring**: Candidates can paste any raw resume text alongside job postings to compute 384d vector similarity and priority recommendations.
 5. **ReportLab PDF Generation**: Downloaded ATS-compliant PDF document streamed directly from FastAPI backend endpoint (`/api/pdf/{resume_id}/download`).
