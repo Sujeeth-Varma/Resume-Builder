@@ -49,10 +49,10 @@ export const DashboardPage: React.FC = () => {
             <span>CANDIDATE PROFILE</span>
           </div>
           <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-[hsl(var(--foreground))]">
-            {profile?.full_name || 'Sujeeth Candidate'}
+            {profile?.full_name || 'Candidate Name'}
           </h1>
           <p className="text-xs font-mono text-[hsl(var(--muted-foreground))]">
-            {profile?.email || 'sujeeth@example.com'} · {profile?.professional_title || 'Python Backend Engineer'}
+            {profile?.email || 'candidate@example.com'} · {profile?.professional_title || 'Software Engineer'}
           </p>
         </div>
 

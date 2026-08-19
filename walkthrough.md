@@ -4,7 +4,7 @@ This document provides a comprehensive summary of the end-to-end implementation,
 
 ---
 
-## 📅 Summary of Changes & Milestones
+## Summary of Changes & Milestones
 
 ### 1. Database Schema & Models Fix (`/backend/app/models`)
 - **Root Cause Addressed**: Resolved an `asyncpg` timezone mismatch error (`can't subtract offset-naive and offset-aware datetimes`) when saving `datetime.now(timezone.utc)` timestamps to PostgreSQL columns.
@@ -38,19 +38,19 @@ This document provides a comprehensive summary of the end-to-end implementation,
 
 ---
 
-## ⚡ Verification Results & Status
+## Verification Results & Status
 
 | Component | Execution Command | Result | Live Endpoint |
 |---|---|---|---|
-| **Database** | `docker compose up -d` | Container active (`resume_builder_db`) | `localhost:5432` |
+| **Database Container** | `docker compose up -d` | Container active (`resume_builder_db`) | `localhost:5432` |
 | **Backend Tests** | `cd backend && uv run pytest tests/` | **4 / 4 Passed** | N/A |
 | **Backend Server** | `uv run uvicorn app.main:app --host 0.0.0.0 --port 8000` | **Running Live** | [`http://localhost:8000`](http://localhost:8000) |
 | **Frontend Build** | `cd frontend && npm run build` | **0 Errors (`tsc -b && vite build`)** | N/A |
-| **Frontend Dev Server** | `npm run dev -- --host 0.0.0.0 --port 5173` | **Running Live** | [`http://localhost:5173`](http://localhost:5173) |
+| **Frontend Dev Server** | `npm run dev` | **Running Live** | [`http://localhost:5173`](http://localhost:5173) |
 
 ---
 
-## 🚀 End-to-End Workflow Validation
+## End-to-End Workflow Validation
 
 1. **User Registration & Login**: Successful JWT token generation against PostgreSQL database.
 2. **Profile & Skills Management**: Added candidate technical skills (`Python`, `FastAPI`, `PostgreSQL`, `Docker`, `AWS`).

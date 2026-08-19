@@ -6,7 +6,7 @@ It empowers job seekers to build candidate profiles, analyze target job descript
 
 ---
 
-## 🌟 Key Features
+## Key Features
 
 1. **Structured Candidate Profile & Taxonomy**:
    - Manage work experience, education, technical projects, and skills categorized by domain (Languages, Frameworks, Databases, Tools, Cloud, Soft Skills).
@@ -33,7 +33,7 @@ It empowers job seekers to build candidate profiles, analyze target job descript
 
 ---
 
-## 🏗️ System Architecture
+## System Architecture
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
@@ -58,7 +58,7 @@ It empowers job seekers to build candidate profiles, analyze target job descript
 
 ---
 
-## 💻 Tech Stack Breakdown
+## Tech Stack Breakdown
 
 ### Backend (`/backend`)
 - **FastAPI**: Asynchronous Python web framework with auto-generated OpenAPI docs.
@@ -79,10 +79,10 @@ It empowers job seekers to build candidate profiles, analyze target job descript
 
 ---
 
-## 🚀 Quickstart Guide
+## Quickstart Guide
 
 ### Prerequisites
-- [Docker](https://www.docker.com/) & Docker Compose
+- [Docker](https://www.docker.com/) & Docker Compose *(for database)*
 - [Node.js](https://nodejs.org/) v18+ or v22+
 - [`uv`](https://github.com/astral-sh/uv) (Python project & package manager)
 
@@ -92,7 +92,7 @@ It empowers job seekers to build candidate profiles, analyze target job descript
 ```bash
 docker compose up -d
 ```
-*This starts the PostgreSQL 16 container with `pgvector` enabled on port `5432`.*
+*Starts the PostgreSQL 16 container with `pgvector` enabled on port `5432`.*
 
 ---
 
@@ -100,10 +100,8 @@ docker compose up -d
 ```bash
 cd backend
 
-# Create virtual environment and install dependencies using uv
-uv venv
-uv pip install -r requirements.txt
-uv pip install https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-3.8.0/en_core_web_sm-3.8.0-py3-none-any.whl
+# Install dependencies using uv sync
+uv sync
 
 # Start FastAPI development server
 uv run uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
@@ -113,7 +111,7 @@ uv run uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 
 ---
 
-### Step 3: Run Frontend
+### Step 3: Run Frontend Development Server
 ```bash
 cd frontend
 
@@ -127,7 +125,7 @@ npm run dev
 
 ---
 
-## 🧪 Verification & Testing
+## Verification & Testing
 
 ### Backend Unit & Integration Tests
 ```bash
@@ -145,6 +143,6 @@ npm run build
 
 ---
 
-## 📄 License
+## License
 
 MIT License. Free and open source for all job seekers.

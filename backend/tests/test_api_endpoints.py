@@ -44,8 +44,8 @@ async def test_full_api_workflow():
 
         # 2. Register User
         reg_payload = {
-            "name": "Sujeeth Candidate",
-            "email": "sujeeth@example.com",
+            "name": "Alex Candidate",
+            "email": "candidate@example.com",
             "password": "securepassword123"
         }
         res = await client.post("/api/auth/register", json=reg_payload)
@@ -55,7 +55,7 @@ async def test_full_api_workflow():
 
         # 3. Login User
         login_data = {
-            "username": "sujeeth@example.com",
+            "username": "candidate@example.com",
             "password": "securepassword123"
         }
         res = await client.post("/api/auth/login", data=login_data)
@@ -66,7 +66,7 @@ async def test_full_api_workflow():
         # 4. Fetch Profile
         res = await client.get("/api/profile", headers=headers)
         assert res.status_code == 200
-        assert res.json()["full_name"] == "Sujeeth Candidate"
+        assert res.json()["full_name"] == "Alex Candidate"
 
         # 5. Add Skill to Profile
         res = await client.post("/api/profile/skills", json={"name": "Python", "category": "Programming Languages"}, headers=headers)

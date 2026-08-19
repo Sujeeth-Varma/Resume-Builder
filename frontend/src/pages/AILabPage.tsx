@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { api } from '../api/client';
+import { useStore } from '../store/useStore';
 import { Card, CardContent } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
@@ -7,6 +8,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '../components/ui/tabs'
 import { Cpu, Sparkles, MessageSquare, FileText, Briefcase } from 'lucide-react';
 
 export const AILabPage: React.FC = () => {
+  const { profile } = useStore();
   const [activeTab, setActiveTab] = useState<'bullet' | 'summary' | 'cover' | 'interview'>('bullet');
   
   // Bullet improver state
@@ -59,17 +61,18 @@ export const AILabPage: React.FC = () => {
   const handleGenerateCoverLetter = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    const candidateName = profile?.full_name || 'Candidate Name';
     try {
       const res = await api.generateCoverLetter({
-        candidate_name: 'Sujeeth Candidate',
+        candidate_name: candidateName,
         target_role: targetRole,
         company_name: companyName,
-        job_description_summary: 'Looking for a Senior Python Developer to lead backend architecture.',
+        job_description_summary: 'Looking for a Senior Developer to lead backend architecture.',
         key_achievements: ['Improved database throughput by 40%'],
       });
-      setGeneratedCoverLetter(res.cover_letter || `Dear Hiring Team at ${companyName},\n\nI am writing to express my strong enthusiasm for the ${targetRole} position. With proven technical experience architecting asynchronous REST APIs and optimizing PostgreSQL databases, I am eager to contribute to your team's engineering goals.\n\nSincerely,\nSujeeth Candidate`);
+      setGeneratedCoverLetter(res.cover_letter || `Dear Hiring Team at ${companyName},\n\nI am writing to express my strong enthusiasm for the ${targetRole} position. With proven technical experience architecting asynchronous REST APIs and optimizing PostgreSQL databases, I am eager to contribute to your team's engineering goals.\n\nSincerely,\n${candidateName}`);
     } catch {
-      setGeneratedCoverLetter(`Dear Hiring Team at ${companyName},\n\nI am writing to express my strong enthusiasm for the ${targetRole} position. With proven technical experience architecting asynchronous REST APIs and optimizing PostgreSQL databases, I am eager to contribute to your team's engineering goals.\n\nSincerely,\nSujeeth Candidate`);
+      setGeneratedCoverLetter(`Dear Hiring Team at ${companyName},\n\nI am writing to express my strong enthusiasm for the ${targetRole} position. With proven technical experience architecting asynchronous REST APIs and optimizing PostgreSQL databases, I am eager to contribute to your team's engineering goals.\n\nSincerely,\n${candidateName}`);
     } finally {
       setLoading(false);
     }

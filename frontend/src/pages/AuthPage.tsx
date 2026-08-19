@@ -13,9 +13,9 @@ export const AuthPage: React.FC = () => {
   const { setToken, fetchProfile } = useStore();
 
   const [activeTab, setActiveTab] = useState<'login' | 'register'>('login');
-  const [email, setEmail] = useState('sujeeth@example.com');
+  const [email, setEmail] = useState('candidate@example.com');
   const [password, setPassword] = useState('securepassword123');
-  const [name, setName] = useState('Sujeeth Candidate');
+  const [name, setName] = useState('Candidate Name');
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
@@ -125,7 +125,7 @@ export const AuthPage: React.FC = () => {
                     required
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    placeholder="Sujeeth Candidate"
+                    placeholder="Candidate Name"
                   />
                 </div>
 

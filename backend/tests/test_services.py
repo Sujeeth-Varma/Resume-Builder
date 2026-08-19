@@ -37,8 +37,8 @@ def test_ats_scoring_engine():
 
 def test_pdf_generation():
     resume_content = {
-        "full_name": "Sujeeth Candidate",
-        "email": "sujeeth@example.com",
+        "full_name": "Alex Candidate",
+        "email": "candidate@example.com",
         "phone": "+1 234 567 890",
         "summary": "Results-driven Software Engineer with expertise in full-stack AI applications.",
         "skills": ["Python", "FastAPI", "React", "PostgreSQL", "Docker"],

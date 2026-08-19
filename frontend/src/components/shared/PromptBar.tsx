@@ -118,11 +118,11 @@ export const PromptBar: React.FC<PromptBarProps> = ({ onActionSelect }) => {
 
       {/* Trust micro-badges below prompt bar */}
       <div className="flex flex-wrap items-center justify-center gap-4 text-[11px] font-mono text-[hsl(var(--muted-foreground))] mt-3">
-        <span>🔒 Zero Data Retention</span>
+        <span>Zero Data Retention</span>
         <span>•</span>
-        <span>⚡ spaCy Skill Extraction</span>
+        <span>spaCy Skill Extraction</span>
         <span>•</span>
-        <span>🎯 pgvector 384d Dense Match</span>
+        <span>pgvector 384d Dense Match</span>
       </div>
     </div>
   );
