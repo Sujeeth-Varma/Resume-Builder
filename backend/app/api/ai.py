@@ -41,20 +41,43 @@ async def generate_cover_letter(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db)
 ):
-    res_result = await db.execute(select(Resume).where(Resume.id == req.resume_id, Resume.user_id == current_user.id))
-    resume = res_result.scalars().first()
-    if not resume:
-        raise HTTPException(status_code=404, detail="Resume not found")
+    candidate_profile = {}
+    job_details = {}
 
-    job_result = await db.execute(select(JobDescription).where(JobDescription.id == req.job_description_id, JobDescription.user_id == current_user.id))
-    job = job_result.scalars().first()
-    if not job:
-        raise HTTPException(status_code=404, detail="Job description not found")
+    if req.resume_id:
+        res_result = await db.execute(select(Resume).where(Resume.id == req.resume_id, Resume.user_id == current_user.id))
+        resume = res_result.scalars().first()
+        if resume and resume.content:
+            candidate_profile = resume.content
+
+    if req.job_description_id:
+        job_result = await db.execute(select(JobDescription).where(JobDescription.id == req.job_description_id, JobDescription.user_id == current_user.id))
+        job = job_result.scalars().first()
+        if job:
+            job_details = {
+                "job_title": job.job_title,
+                "company_name": job.company_name,
+                "raw_text": job.raw_text
+            }
+
+    if not candidate_profile:
+        candidate_profile = {
+            "full_name": req.candidate_name or getattr(current_user, "name", None) or getattr(current_user, "email", "Candidate").split("@")[0],
+            "summary": "; ".join([str(a) for a in req.key_achievements if a]),
+            "skills": []
+        }
+
+    if not job_details:
+        job_details = {
+            "job_title": req.target_role or "Target Role",
+            "company_name": req.company_name or "Hiring Team",
+            "raw_text": req.job_description_summary or ""
+        }
 
     letter = llm_service.generate_cover_letter(
-        candidate_profile=resume.content,
-        job_details={"job_title": job.job_title, "company_name": req.company_name or job.company_name, "raw_text": job.raw_text},
-        company_name=req.company_name or job.company_name
+        candidate_profile=candidate_profile,
+        job_details=job_details,
+        company_name=req.company_name or job_details.get("company_name")
     )
     return {"cover_letter": letter}
 

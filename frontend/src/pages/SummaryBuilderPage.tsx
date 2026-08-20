@@ -19,27 +19,35 @@ export const SummaryBuilderPage: React.FC = () => {
   const handleGenerate = async () => {
     setIsGenerating(true);
     setSaveStatus(null);
+
+    const skillNames = (profile?.skills || [])
+      .map((s: any) => (typeof s === 'string' ? s : s?.name))
+      .filter(Boolean);
+    const expHighlights = (profile?.experience_items || [])
+      .map((e: any) => (typeof e === 'string' ? e : e?.job_title))
+      .filter(Boolean);
+
     try {
       const res = await api.generateAISummary({
         target_role: jobTitle,
-        skills: profile?.skills || ['Python', 'FastAPI', 'React', 'PostgreSQL', 'Docker'],
-        experience_highlights: (profile?.experience_items || []).map(e => e.job_title),
+        skills: skillNames.length > 0 ? skillNames : ['Python', 'FastAPI', 'React', 'PostgreSQL', 'Docker'],
+        experience_highlights: expHighlights,
       });
       setGeneratedSummary(res.summary);
     } catch (err) {
       // Fallback generator based on profile details
-      const userSkills = (profile?.skills || ['Python', 'React', 'AI/ML']).slice(0, 5).join(', ');
+      const userSkillsStr = (skillNames.length > 0 ? skillNames : ['Python', 'React', 'AI/ML']).slice(0, 5).join(', ');
       const userRole = jobTitle || profile?.professional_title || 'Software Engineer';
       
       let sample = '';
       if (tone === 'objective') {
-        sample = `Aspiring ${userRole} skilled in ${userSkills}. Seeking high-impact software engineering roles to architect reliable, scalable web applications and AI workflows.`;
+        sample = `Aspiring ${userRole} skilled in ${userSkillsStr}. Seeking high-impact software engineering roles to architect reliable, scalable web applications and AI workflows.`;
       } else if (tone === 'executive') {
-        sample = `Results-driven ${userRole} with hands-on expertise in ${userSkills}. Proven track record of shipping end-to-end applications, optimizing API throughput, and collaborating across engineering teams.`;
+        sample = `Results-driven ${userRole} with hands-on expertise in ${userSkillsStr}. Proven track record of shipping end-to-end applications, optimizing API throughput, and collaborating across engineering teams.`;
       } else if (tone === 'concise') {
-        sample = `Focused ${userRole} proficient in ${userSkills}. Dedicated to clean code, robust backend design, and modern frontend interfaces.`;
+        sample = `Focused ${userRole} proficient in ${userSkillsStr}. Dedicated to clean code, robust backend design, and modern frontend interfaces.`;
       } else {
-        sample = `Full Stack ${userRole} with strong expertise in ${userSkills}. Experienced in REST API architecture, database design, and modern web application development.`;
+        sample = `Full Stack ${userRole} with strong expertise in ${userSkillsStr}. Experienced in REST API architecture, database design, and modern web application development.`;
       }
       setGeneratedSummary(sample);
     } finally {

@@ -114,12 +114,26 @@ async def test_full_api_workflow():
         assert res.headers["content-type"] == "application/pdf"
         assert len(res.content) > 500
 
-        # 10. AI Summary Endpoint
+        # 10. AI Summary Endpoint (with string list & object skills)
         ai_summary_payload = {
             "target_role": "Python Engineer",
-            "skills": ["Python", "FastAPI", "PostgreSQL"],
+            "skills": [{"name": "Python"}, {"name": "FastAPI"}],
             "experience_highlights": ["Built backend REST APIs"]
         }
         res = await client.post("/api/ai/summary", json=ai_summary_payload, headers=headers)
         assert res.status_code == 200
         assert "summary" in res.json()
+        assert "[object Object]" not in res.json()["summary"]
+
+        # 11. AI Cover Letter Endpoint (Direct form fields payload)
+        cover_letter_payload = {
+            "candidate_name": "Alex Candidate",
+            "target_role": "Senior Full Stack AI Developer",
+            "company_name": "Echo Brains Tech",
+            "job_description_summary": "Proficient in Python, React, FastAPI",
+            "key_achievements": ["Data Science Intern"]
+        }
+        res = await client.post("/api/ai/cover-letter", json=cover_letter_payload, headers=headers)
+        assert res.status_code == 200, res.text
+        assert "cover_letter" in res.json()
+        assert len(res.json()["cover_letter"]) > 50

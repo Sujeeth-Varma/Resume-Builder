@@ -16,14 +16,19 @@ class LLMService:
         return self._client
 
     def generate_summary(self, target_role: str, skills: List[str], experience_highlights: List[str]) -> str:
+        clean_skills = [s if isinstance(s, str) else (s.get("name") if isinstance(s, dict) else str(s)) for s in skills if s]
+        clean_highlights = [h if isinstance(h, str) else (h.get("job_title") if isinstance(h, dict) else str(h)) for h in experience_highlights if h]
+        
+        skills_str = ", ".join(clean_skills[:5]) if clean_skills else "full-stack development, software engineering"
+
         if not self.client:
-            return f"Results-driven {target_role} skilled in {', '.join(skills[:4])}. Experienced in delivering robust software applications and collaborative development."
+            return f"Results-driven {target_role} skilled in {skills_str}. Experienced in delivering robust software applications and collaborative development."
 
         prompt = f"""
         Act as an expert resume writer. Generate a concise, impactful 3-sentence professional summary for a candidate applying for the role of '{target_role}'.
         
-        Candidate Skills: {', '.join(skills)}
-        Experience Highlights: {'; '.join(experience_highlights)}
+        Candidate Skills: {', '.join(clean_skills)}
+        Experience Highlights: {'; '.join(clean_highlights)}
         
         Guidelines:
         - Do not use first-person pronouns (I, my, me).
@@ -38,7 +43,7 @@ class LLMService:
             )
             return response.text.strip()
         except Exception as e:
-            return f"Experienced {target_role} proficient in {', '.join(skills[:5])} with a proven track record of software execution."
+            return f"Experienced {target_role} proficient in {skills_str} with a proven track record of software execution."
 
     def improve_bullet_points(self, raw_bullet: str, target_role: Optional[str] = None, technologies: List[str] = []) -> List[str]:
         if not self.client:
@@ -75,12 +80,15 @@ class LLMService:
     def generate_cover_letter(self, candidate_profile: Dict[str, Any], job_details: Dict[str, Any], company_name: Optional[str] = None) -> str:
         company = company_name or job_details.get("company_name") or "Hiring Team"
         role = job_details.get("job_title", "Target Role")
-        skills = ", ".join(candidate_profile.get("skills", [])[:6])
+        
+        raw_skills = candidate_profile.get("skills", [])
+        clean_skills = [s if isinstance(s, str) else (s.get("name") if isinstance(s, dict) else str(s)) for s in raw_skills if s]
+        skills_str = ", ".join(clean_skills[:6]) if clean_skills else "full-stack development, software engineering, problem solving"
 
         if not self.client:
             return f"""Dear Hiring Manager at {company},
 
-I am writing to express my strong interest in the {role} position. With my background in {skills}, I am confident in my ability to contribute effectively to your team's goals.
+I am writing to express my strong interest in the {role} position. With my background in {skills_str}, I am confident in my ability to contribute effectively to your team's goals.
 
 In my recent projects and experience, I have consistently focused on building scalable, reliable, and efficient software solutions. I am eager to bring my problem-solving skills and technical expertise to {company}.
 
@@ -93,7 +101,7 @@ Sincerely,
         Write a professional 3-paragraph Cover Letter for the following candidate applying for the '{role}' role at '{company}'.
         
         Candidate Name: {candidate_profile.get('full_name', 'Candidate')}
-        Candidate Skills: {skills}
+        Candidate Skills: {skills_str}
         Candidate Experience Summary: {candidate_profile.get('summary', '')}
         Job Description Excerpt: {job_details.get('raw_text', '')[:500]}
         

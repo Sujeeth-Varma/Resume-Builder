@@ -21,19 +21,27 @@ export const CoverLetterPage: React.FC = () => {
   const handleGenerate = async () => {
     if (!jobTitle || !companyName) return;
     setIsGenerating(true);
+
+    const achievements = (profile?.experience_items || [])
+      .map((e: any) => (typeof e === 'string' ? e : e?.job_title))
+      .filter(Boolean);
+    const skillNames = (profile?.skills || [])
+      .map((s: any) => (typeof s === 'string' ? s : s?.name))
+      .filter(Boolean);
+
     try {
       const res = await api.generateCoverLetter({
         candidate_name: profile?.full_name || 'Candidate',
         target_role: jobTitle,
         company_name: companyName,
         job_description_summary: jobDescription,
-        key_achievements: (profile?.experience_items || []).map(e => e.job_title),
+        key_achievements: achievements,
       });
       setGeneratedLetter(res.cover_letter);
     } catch (err) {
       // Clean, professional fallback template
       const candidateName = profile?.full_name || 'Candidate';
-      const skillsList = (profile?.skills || ['Python', 'FastAPI', 'React', 'AI/ML']).join(', ');
+      const skillsList = (skillNames.length > 0 ? skillNames : ['Python', 'FastAPI', 'React', 'AI/ML']).slice(0, 5).join(', ');
       
       const letter = `Dear Hiring Manager at ${companyName},
 
